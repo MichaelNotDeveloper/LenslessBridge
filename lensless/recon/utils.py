@@ -566,6 +566,13 @@ class Trainer:
         post_process_freeze=None,
         post_process_unfreeze=None,
         n_epoch=None,
+        discriminator_loss_model=None,
+        discriminator_batch_size=None,
+        discriminator_optimizer=None,
+        discriminator_loss_coeff=0,
+        gan_amount_of_epoch=2,
+        gen_target_generator = None,
+        real_target_generator = None,
     ):
         """
         Class to train a reconstruction algorithm. Inspired by Trainer from `HuggingFace <https://huggingface.co/docs/transformers/main_classes/trainer>`__.
@@ -737,6 +744,13 @@ class Trainer:
             plt.savefig(fp)
 
         self.l1_mask = l1_mask
+        
+        self.discrimintor = discriminator_loss_model 
+        self.discrimintor_batch_size = discriminator_batch_size
+        self.gan_amount_of_epoch = gan_amount_of_epoch
+        self.discriminator_loss_coeff = discriminator_loss_coeff 
+        self.gen_target_generator = gen_target_generator if gen_target_generator is not None else lambda count : torch.rand(1, count) * 0.3 + 0.0
+        self.real_target_generator = real_target_generator if real_target_generator is not None else lambda count : torch.rand(1, count) * 0.5 + 0.7
 
         # loss
         if loss == "l2":
@@ -756,6 +770,8 @@ class Trainer:
                 return ImportError(
                     "lpips package is need for LPIPS loss. Install using : pip install lpips"
                 )
+        if self.gan is not None:
+            self.Loss_gan = self.discrimintor.to(self.device)
 
         self.crop = crop
 
@@ -782,6 +798,8 @@ class Trainer:
         self.n_epoch = n_epoch
         self.lr_step_epoch = optimizer.lr_step_epoch
         self.set_optimizer()
+
+        # discriminator optimizer
 
         # metrics
         self.metrics = {
@@ -943,6 +961,39 @@ class Trainer:
             self.scheduler = torch.optim.lr_scheduler.LambdaLR(
                 self.optimizer, lr_lambda=learning_rate_function, last_epoch=last_epoch
             )
+
+    def train_gan_epoch(self, data_loader, generated_loader):
+        """
+        Train the GAN for one epoch.
+
+        Parameters
+        ----------
+        data_loader : :py:class:`torch.utils.data.DataLoader`
+            Data loader to use for training.
+        generated_loader : :py:class:`torch.utils.data.DataLoader`
+            Data loader to use for generating.
+        """
+        self.gan.train()
+        mean_loss = 0.0
+        pbar = tqdm(data_loader)
+        for batch in pbar:
+            real_data = batch[1].to(self.device)
+            generated_data = generated_loader[1].to(self.device)
+            real_data_logits = nn.functional.F.logsigmoid(self.gan(real_data))
+            genereated_data_logits = nn.functional.F.logsigmoid(self.gan(generated_data))
+            loss = nn.loss.MSE(genereated_data_logits, self.gen_target_generator(genereated_data_logits.shape[0])) + \
+                nn.loss.MSE(real_data_logits, self.real_target_generator(real_data_logits.shape[0]))
+
+            self.discriminator_optimizer.zero_grad()
+            loss.backward()
+            self.discriminator_optimizer.step()
+
+            mean_loss += (loss.item() - mean_loss) * (1 / i)
+            pbar.set_description(f"loss : {mean_loss}")
+            i += 1
+
+        self.print(f"loss : {mean_loss}")
+        return mean_loss
 
     def train_epoch(self, data_loader):
         """
@@ -1308,13 +1359,17 @@ class Trainer:
 
         return eval_loss
 
-    def on_epoch_end(self, mean_loss, save_pt, epoch, disp=None):
+    def on_epoch_end(self, mean_loss, save_pt, epoch, disp=None, mean_gan_loss=None):
         """
         Called at the end of each epoch.
 
         Parameters
         ----------
         mean_loss : float
+            Mean loss of the last epoch.
+        mean_gan_loss : float, optional
+            Mean loss of the last epoch for the discriminator. If None, no logging of GAN loss.
+        save_pt : str
             Mean loss of the last epoch.
         save_pt : str
             Path to save metrics dictionary to. If None, no logging of metrics.
@@ -1408,6 +1463,8 @@ class Trainer:
 
             self.print(f"Epoch {epoch} with learning rate {self.scheduler.get_last_lr()}")
             mean_loss = self.train_epoch(self.train_dataloader)
+            if self.gan is not None:
+                mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
             # offset because of evaluate before loop
             self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp)
             if self.lr_step_epoch:
@@ -1491,6 +1548,8 @@ class Trainer:
         # save optimizer
         if include_optimizer:
             torch.save(self.optimizer.state_dict(), os.path.join(path, f"optim_epoch{epoch}.pt"))
+            torch.save(self.discriminator_optimizer.state_dict(), os.path.join(path, f"discriminator_optim_epoch{epoch}.pt"))
 
         # save recon
         torch.save(self.recon.state_dict(), os.path.join(path, f"recon_epoch{epoch}"))
+        torch.save(self.discriminator.state_dict(), os.path.join(path, f"discriminator_epoch{epoch}"))
