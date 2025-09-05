@@ -571,8 +571,8 @@ class Trainer:
         discriminator_optimizer=None,
         discriminator_loss_coeff=0,
         gan_amount_of_epoch=2,
-        gen_target_generator = None,
-        real_target_generator = None,
+        gen_target_generator=None,
+        real_target_generator=None,
     ):
         """
         Class to train a reconstruction algorithm. Inspired by Trainer from `HuggingFace <https://huggingface.co/docs/transformers/main_classes/trainer>`__.
@@ -976,6 +976,8 @@ class Trainer:
         self.gan.train()
         mean_loss = 0.0
         pbar = tqdm(data_loader)
+        i = 1.0
+        
         for batch in pbar:
             real_data = batch[1].to(self.device)
             generated_data = generated_loader[1].to(self.device)
@@ -1548,7 +1550,8 @@ class Trainer:
         # save optimizer
         if include_optimizer:
             torch.save(self.optimizer.state_dict(), os.path.join(path, f"optim_epoch{epoch}.pt"))
-            torch.save(self.discriminator_optimizer.state_dict(), os.path.join(path, f"discriminator_optim_epoch{epoch}.pt"))
+            if self.gan is not None:
+                torch.save(self.discriminator_optimizer.state_dict(), os.path.join(path, f"discriminator_optim_epoch{epoch}.pt"))
 
         # save recon
         torch.save(self.recon.state_dict(), os.path.join(path, f"recon_epoch{epoch}"))
