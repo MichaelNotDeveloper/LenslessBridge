@@ -639,7 +639,6 @@ class Trainer:
             Epoch at which to freeze post process component. Default is None.
         post_process_unfreeze : int, optional
             Epoch at which to unfreeze post process component. Default is None.
-
         """
         # global print
 
@@ -1402,13 +1401,22 @@ class Trainer:
         if new_best:
             self.metrics["best_epoch"] = epoch
             self.save(path=save_pt, include_optimizer=False, epoch="BEST")
-
+        
         if self.save_every is not None and epoch % self.save_every == 0:
             self.save(path=save_pt, include_optimizer=False, epoch=epoch)
 
         # save dictionary metrics to file with json
         with open(os.path.join(save_pt, "metrics.json"), "w") as f:
             json.dump(self.metrics, f, indent=4)
+    
+        # upload all metrics to wandb
+        if hasattr(self, "use_wandb") and self.use_wandb:
+            try:
+                wandb.log(self.metrics, step=epoch)
+                if self.gan is not None:
+                    wandb.log({"GAN_LOSS": mean_gan_loss}, step=epoch)
+            except Exception as e:
+                self.print(f"Warning: Failed to log metrics to wandb: {e}")
 
     def train(self, n_epoch=1, save_pt=None, disp=None):
         """
