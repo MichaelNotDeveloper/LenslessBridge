@@ -769,7 +769,7 @@ class Trainer:
                 return ImportError(
                     "lpips package is need for LPIPS loss. Install using : pip install lpips"
                 )
-        if self.gan is not None:
+        if self.discrimintor is not None:
             self.Loss_gan = self.discrimintor.to(self.device)
 
         self.crop = crop
