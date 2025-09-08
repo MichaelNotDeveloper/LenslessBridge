@@ -815,7 +815,8 @@ class Trainer:
             "algorithm": algorithm_name,
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
-            "best_eval_score": 0
+            "best_eval_score": 0,
+            "discriminator_LOSS": []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }
@@ -1473,7 +1474,7 @@ class Trainer:
 
             self.print(f"Epoch {epoch} with learning rate {self.scheduler.get_last_lr()}")
             mean_loss = self.train_epoch(self.train_dataloader)
-            if self.gan is not None:
+            if self.discrimintor is not None:
                 mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
             # offset because of evaluate before loop
             self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp)
