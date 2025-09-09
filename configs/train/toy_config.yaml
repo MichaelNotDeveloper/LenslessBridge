@@ -8,7 +8,8 @@ eval_disp_idx: [1, 2, 4, 5, 9]
 
 # Dataset
 files:
-  dataset: bezzam/DigiCam-Mirflickr-SingleMask-25K
+  dataset=./data/mirflickr/
+  celeba_root=null
   huggingface_dataset: True
   huggingface_psf: null
   downsample: 1
@@ -58,6 +59,10 @@ reconstruction:
   # Pre-processing + post-processing + PSF correction (8.1M parameters)
   psf_network: [4,8,16,32]
   pre_process: 
-    network : null # UnetRes or DruNet or null
+    network : UnetRes  # UnetRes or DruNet or null
+    depth : 4 # depth of each up/downsampling layer. Ignore if network is DruNet
+    nc: [32,64,112,128]
   post_process: 
-    network : null # UnetRes or DruNet or null
+    network : UnetRes  # UnetRes or DruNet or null
+    depth : 4 # depth of each up/downsampling layer. Ignore if network is DruNet
+    nc: [32,64,116,128]
