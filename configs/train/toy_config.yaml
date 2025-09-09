@@ -7,9 +7,7 @@ wandb_project: toy_model_pipline_test
 eval_disp_idx: [1, 2, 4, 5, 9]
 
 # Dataset
-files:
-  dataset=HFDataset
-  n_files: 64
+dataset=HFDataset
 
 # TODO: these parameters should be in the dataset?
 alignment:
