@@ -9,14 +9,6 @@ eval_disp_idx: [1, 2, 4, 5, 9]
 # Dataset
 files:
   dataset=HFDataset
-  celeba_root=null
-  huggingface_dataset: True
-  huggingface_psf: null
-  downsample: 1
-  # TODO: these parameters should be in the dataset?
-  image_res: [900, 1200]  # used during measurement
-  rotate: True   # if measurement is upside-down
-  save_psf: True
   n_files: 64
 
 # TODO: these parameters should be in the dataset?
