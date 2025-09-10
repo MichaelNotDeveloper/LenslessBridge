@@ -7,7 +7,15 @@ wandb_project: toy_model_pipline_test
 eval_disp_idx: [1, 2, 4, 5, 9]
 
 # Dataset
-dataset=HFDataset
+files:
+  dataset: bezzam/TapeCam-Mirflickr-25K
+  huggingface_dataset: True
+  huggingface_psf: psf.png
+  downsample: 1
+  # TODO: these parameters should be in the dataset?
+  image_res: [900, 1200]  # used during measurement
+  rotate: False   # if measurement is upside-down
+  save_psf: True
 
 # TODO: these parameters should be in the dataset?
 alignment:
