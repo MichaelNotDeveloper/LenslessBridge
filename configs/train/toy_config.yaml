@@ -26,7 +26,7 @@ defaults:
   - defaults
   - _self_
 
-wandb_project: digicam
+wandb_project: toy_config
 eval_disp_idx: [1, 2, 4, 5, 9]
 
 # TODO: these parameters should be in the dataset?
