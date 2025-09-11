@@ -1,33 +1,21 @@
-# configs/train/toy_config.yaml
-
+# python scripts/recon/train_learning_based.py -cn digicam
 defaults:
   - defaults
   - _self_
 
-files:
-  # Hugging Face датасет DigiCam MIRFlickr (25k пар "lensless↔lensed")
-  dataset: bezzam/DigiCam-Mirflickr-SingleMask-25K
-  split: train             # использовать обучающую часть датасета
-  n_files: 100             # <<< ограничение на число примеров для быстрой проверки
-  test_size: 0.1           # 10% пойдут под валидацию внутри запуска
-  cache_dir: null          # можно указать путь (напр., /dev/shm или /tmp/hf_cache)
-  # Для DigiCam часто используют симулированный/заданный PSF-файл (см. примеры в слепках Hydra):
-  huggingface_psf: psf_simulated_waveprop.png   # имя файла PSF в пакете моделей/ресурсов
-  downsample: 2            # при необходимости уменьшить размер входа (ускоряет обучение)
-  torch: true
-  torch_device: cuda:0     # поменяй на "cpu", если без GPU
-  vertical_shift: null
-  horizontal_shift: null
-  crop: null               # [h,w], если нужно обрезать (оставь null для авто)
-  input_snr: 0.0           # без добавления шума на вход
-  diffcam_compat: false    # специальный флаг не нужен; оставляем false
-  eval_disp_idx: [0, 1, 2, 3, 4]
-  test_idx:       [0, 1, 2, 3, 4]
-
-
-
-wandb_project: toy_config
+wandb_project: digicam
 eval_disp_idx: [1, 2, 4, 5, 9]
+
+# Dataset
+files:
+  dataset: bezzam/DigiCam-Mirflickr-SingleMask-25K
+  huggingface_dataset: True
+  huggingface_psf: null
+  downsample: 1
+  # TODO: these parameters should be in the dataset?
+  image_res: [900, 1200]  # used during measurement
+  rotate: True   # if measurement is upside-down
+  save_psf: True
 
 # TODO: these parameters should be in the dataset?
 alignment:

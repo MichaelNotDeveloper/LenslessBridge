@@ -769,8 +769,6 @@ class Trainer:
                 return ImportError(
                     "lpips package is need for LPIPS loss. Install using : pip install lpips"
                 )
-        if self.discrimintor is not None:
-            self.Loss_gan = self.discrimintor.to(self.device)
 
         self.crop = crop
 
@@ -816,7 +814,7 @@ class Trainer:
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
             "best_eval_score": 0,
-            "discriminator_LOSS": []
+            "Liscriminator_LOSS": []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }
@@ -981,6 +979,7 @@ class Trainer:
         for batch in pbar:
             real_data = batch[1].to(self.device)
             generated_data = generated_loader[1].to(self.device)
+
             real_data_logits = nn.functional.F.logsigmoid(self.gan(real_data))
             genereated_data_logits = nn.functional.F.logsigmoid(self.gan(generated_data))
             loss = nn.loss.MSE(genereated_data_logits, self.gen_target_generator(genereated_data_logits.shape[0])) + \
@@ -1115,6 +1114,14 @@ class Trainer:
                 loss_v = loss_v + self.lpips * torch.mean(
                     self.Loss_lpips(2 * y_pred_crop - 1, 2 * y - 1)
                 )
+                
+            # -- add discriminator loss to total loss
+            if self.discrimintor is not None:
+                if camera_inv_out_norm.shape[1] == 1:
+                    # if only one channel, repeat for GANs
+                    camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
+                loss_unrolled = loss_unrolled + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1)
+                    
             if self.use_mask and self.l1_mask:
                 for p in self.mask.parameters():
                     if p.requires_grad:
@@ -1163,10 +1170,10 @@ class Trainer:
                     loss_unrolled = loss_unrolled + self.lpips * torch.mean(
                         self.Loss_lpips(2 * camera_inv_out_norm - 1, 2 * y - 1)
                     )
-
+                
                 # -- add unrolled loss to total loss
                 loss_v = loss_v + self.unrolled_output_factor * loss_unrolled
-
+                
             if self.pre_proc_aux:
                 # -- normalize
                 unrolled_out_max = torch.amax(camera_inv_out, dim=(-1, -2, -3), keepdim=True) + eps
@@ -1278,6 +1285,7 @@ class Trainer:
 
         # update metrics with current metrics
         self.metrics["LOSS"].append(mean_loss)
+        self.metrics["discriminator_LOSS"]
         if self.use_wandb:
             wandb.log({"LOSS": mean_loss}, step=epoch)
         for key in current_metrics:
@@ -1410,15 +1418,6 @@ class Trainer:
         with open(os.path.join(save_pt, "metrics.json"), "w") as f:
             json.dump(self.metrics, f, indent=4)
     
-        # upload all metrics to wandb
-        if hasattr(self, "use_wandb") and self.use_wandb:
-            try:
-                wandb.log(self.metrics, step=epoch)
-                if self.gan is not None:
-                    wandb.log({"GAN_LOSS": mean_gan_loss}, step=epoch)
-            except Exception as e:
-                self.print(f"Warning: Failed to log metrics to wandb: {e}")
-
     def train(self, n_epoch=1, save_pt=None, disp=None):
         """
         Train the reconstruction algorithm.
@@ -1473,14 +1472,16 @@ class Trainer:
                 self.print(f"Training {n_param} parameters")
 
             self.print(f"Epoch {epoch} with learning rate {self.scheduler.get_last_lr()}")
+            # Where epoch runs TODO : reconstruct epoch iterations (train D more)
             mean_loss = self.train_epoch(self.train_dataloader)
             if self.discrimintor is not None:
                 mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
+            
             # offset because of evaluate before loop
-            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp)
+            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp, mean_gan_loss=mean_gan_loss)
             if self.lr_step_epoch:
                 self.scheduler.step()
-
+            
             torch.cuda.empty_cache()
             gc.collect()
 

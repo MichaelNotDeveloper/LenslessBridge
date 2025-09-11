@@ -58,7 +58,7 @@ class BasicDiscriminator(nn.Module):
         """
         return self.model(x)
 
-def discriminator_loss_fn(pred_real, pred_fake, real_target_generator, gen_target_generator):
+def discriminator_loss_fn(pred_real, pred_fake, real_target_generator = None, gen_target_generator = None):
     """
     Standard GAN loss for discriminator.
 
@@ -78,7 +78,7 @@ def discriminator_loss_fn(pred_real, pred_fake, real_target_generator, gen_targe
     loss_fake = F.binary_cross_entropy_with_logits(pred_fake, gen_target_generator(pred_fake.shape[0]))
     return 0.5 * (loss_real + loss_fake)
 
-def generator_loss_fn(pred_fake,  gen_target_generator):
+def generator_loss_fn(pred_fake,  gen_target_generator = None):
     """
     Standard GAN loss for generator.
 

@@ -15,6 +15,7 @@ https://github.com/LCAV/LenslessPiCam/tree/main/configs/train#training-physics-i
 
 """
 
+import dis
 import wandb
 import logging
 import hydra
@@ -717,6 +718,17 @@ def train_learned(config):
     log.info(f"Setup time : {time.time() - start_time} s")
     log.info(f"PSF shape : {psf.shape}")
     log.info(f"Results saved in {save}")
+    
+    discriminator = None
+    if config.disc is not None:
+        from scripts.recon.discriminator import Discriminator
+        # Initialize the discriminator
+        discriminator = Discriminator(
+            in_channels = 3
+        )
+        if use_cuda:
+            discriminator.to(device)
+    
     trainer = Trainer(
         recon=recon,
         train_dataset=train_set,
@@ -751,6 +763,13 @@ def train_learned(config):
         n_epoch=config.training.epoch,
         random_rotate=config.files.random_rotate,
         random_shift=config.files.random_shifts,
+        # GAN params
+        discriminator_loss_model=discriminator,
+        discriminator_batch_size=1,
+        discriminator_optimizer=torch.optim.SGD(),
+        discriminator_loss_coeff=config.dis_loss,
+        gen_target_generator=None,
+        real_target_generator=None,
     )
 
     trainer.train(n_epoch=config.training.epoch, save_pt=save, disp=config.eval_disp_idx)
