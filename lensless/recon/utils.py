@@ -1288,7 +1288,7 @@ class Trainer:
 
         # update metrics with current metrics
         self.metrics["LOSS"].append(mean_loss)
-        self.metrics["discriminator_LOSS"]
+        #self.metrics["discriminator_LOSS"]
         if self.use_wandb:
             wandb.log({"LOSS": mean_loss}, step=epoch)
         for key in current_metrics:
