@@ -726,7 +726,7 @@ def train_learned(config):
         # Initialize the discriminator
         discriminator = BaselineDiscriminator(
             in_channels = 3,
-            img_size = config.files.img_res
+            img_size = config.files.image_res
         )
         if use_cuda:
             discriminator.to(device)
@@ -772,7 +772,7 @@ def train_learned(config):
         discriminator_batch_size=config.gan.epoch_diff, # for trainig
         discriminator_optimizer=disc_optimizer, # for training
         discriminator_loss_coeff=config.gan.loss_coeff, # for inference
-        gen_target_generator=config.gan.generator, # for inferenece 
+        gen_target_generator=config.gan.generator, # for inferenece
         real_target_generator=config.gan.generator, # for inferenece
     )
 
