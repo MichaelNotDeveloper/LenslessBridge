@@ -743,7 +743,9 @@ class Trainer:
             plt.savefig(fp)
 
         self.l1_mask = l1_mask
-        
+       
+       
+        # gan setter 
         self.discrimintor = discriminator_loss_model 
         self.discrimintor_batch_size = discriminator_batch_size
         self.gan_amount_of_epoch = gan_amount_of_epoch
@@ -959,7 +961,7 @@ class Trainer:
             self.scheduler = torch.optim.lr_scheduler.LambdaLR(
                 self.optimizer, lr_lambda=learning_rate_function, last_epoch=last_epoch
             )
-
+    # TODO train cycle
     def train_gan_epoch(self, data_loader, generated_loader):
         """
         Train the GAN for one epoch.
