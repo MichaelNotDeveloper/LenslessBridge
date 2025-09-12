@@ -12,6 +12,7 @@ files:
   huggingface_dataset: True
   huggingface_psf: null
   downsample: 1
+  n_file: 100
   # TODO: these parameters should be in the dataset?
   image_res: [900, 1200]  # used during measurement
   rotate: True   # if measurement is upside-down
@@ -66,3 +67,8 @@ reconstruction:
     network : UnetRes  # UnetRes or DruNet or null
     depth : 4 # depth of each up/downsampling layer. Ignore if network is DruNet
     nc: [32,64,116,128]
+
+gan:
+  loss_coeff : # loss for Discriminator
+  epoch_diff : # for one Gen epochs use "epoch_diff" epochs for Discriminator
+  generator : "Rand" # Rand or Determ

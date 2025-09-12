@@ -814,7 +814,7 @@ class Trainer:
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
             "best_eval_score": 0,
-            "Liscriminator_LOSS": []
+            "Discriminator_LOSS": []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }
@@ -1120,7 +1120,7 @@ class Trainer:
                 if camera_inv_out_norm.shape[1] == 1:
                     # if only one channel, repeat for GANs
                     camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
-                loss_unrolled = loss_unrolled + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1)
+                loss_unrolled = loss_unrolled + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1, self.gen_target_generator)
                     
             if self.use_mask and self.l1_mask:
                 for p in self.mask.parameters():

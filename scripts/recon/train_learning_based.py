@@ -720,15 +720,19 @@ def train_learned(config):
     log.info(f"Results saved in {save}")
     
     discriminator = None
-    if config.disc is not None:
-        from scripts.recon.discriminator import Discriminator
+    disc_optimizer = None
+    if config.gan:
+        from scripts.recon.discriminator import BaselineDiscriminator
         # Initialize the discriminator
-        discriminator = Discriminator(
-            in_channels = 3
+        discriminator = BaselineDiscriminator(
+            in_channels = 3,
+            img_size = config.files.img_res
         )
         if use_cuda:
             discriminator.to(device)
-    
+        disc_optimizer = torch.optim.SGD(discriminator.parameters(), lr=5e-3)
+        
+        
     trainer = Trainer(
         recon=recon,
         train_dataset=train_set,
@@ -764,12 +768,12 @@ def train_learned(config):
         random_rotate=config.files.random_rotate,
         random_shift=config.files.random_shifts,
         # GAN params
-        discriminator_loss_model=discriminator,
-        discriminator_batch_size=1,
-        discriminator_optimizer=torch.optim.SGD(),
-        discriminator_loss_coeff=config.dis_loss,
-        gen_target_generator=None,
-        real_target_generator=None,
+        discriminator_loss_model=discriminator, # for training
+        discriminator_batch_size=config.gan.epoch_diff, # for trainig
+        discriminator_optimizer=disc_optimizer, # for training
+        discriminator_loss_coeff=config.gan.loss_coeff, # for inference
+        gen_target_generator=config.gan.generator, # for inferenece 
+        real_target_generator=config.gan.generator, # for inferenece
     )
 
     trainer.train(n_epoch=config.training.epoch, save_pt=save, disp=config.eval_disp_idx)
