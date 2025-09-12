@@ -1119,6 +1119,7 @@ class Trainer:
                 
             # -- add discriminator loss to total loss
             if self.discrimintor is not None:
+                self.print("Debug : disc is working")
                 if camera_inv_out_norm.shape[1] == 1:
                     # if only one channel, repeat for GANs
                     camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
@@ -1245,7 +1246,7 @@ class Trainer:
 
         return mean_loss
 
-    def evaluate(self, mean_loss, epoch, disp=None):
+    def evaluate(self, mean_loss, epoch, disp=None, mean_gan_loss=0):
         """
         Evaluate the reconstruction algorithm on the test dataset.
 
