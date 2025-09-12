@@ -816,7 +816,7 @@ class Trainer:
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
             "best_eval_score": 0,
-            "Discriminator_LOSS": []
+            "discriminator_LOSS": []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }

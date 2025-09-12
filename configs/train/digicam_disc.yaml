@@ -17,6 +17,7 @@ files:
   image_res: [900, 1200]  # used during measurement
   rotate: True   # if measurement is upside-down
   save_psf: True
+  streaming: True
 
 # TODO: these parameters should be in the dataset?
 alignment:
