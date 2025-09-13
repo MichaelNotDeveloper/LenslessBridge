@@ -752,7 +752,10 @@ class Trainer:
         self.discriminator_loss_coeff = discriminator_loss_coeff 
         self.gen_target_generator = gen_target_generator if gen_target_generator is not None else lambda count : torch.rand(1, count) * 0.3 + 0.0
         self.real_target_generator = real_target_generator if real_target_generator is not None else lambda count : torch.rand(1, count) * 0.5 + 0.7
-
+        try:
+            self.discrimintor.generator_loss_fn
+        except e:
+            print(f"GENIUS {e}") 
         # loss
         if loss == "l2":
             self.Loss = torch.nn.MSELoss()
