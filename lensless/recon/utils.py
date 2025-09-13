@@ -1084,9 +1084,6 @@ class Trainer:
                         y_pred_crop,
                         axis=(-2, -1),
                         lensed=y,
-                        flip_lr=flip_lr,
-                        flip_ud=flip_ud,
-                        rotate_aug=random_rotate,
                     )
 
             elif self.crop is not None:
@@ -1118,12 +1115,14 @@ class Trainer:
                 )
                 
             # -- add discriminator loss to total loss
-            if self.discrimintor is not None:
-                self.print("Debug : disc is working")
-                if camera_inv_out_norm.shape[1] == 1:
-                    # if only one channel, repeat for GANs
-                    camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
-                loss_unrolled = loss_unrolled + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1, self.gen_target_generator)
+            if self.gan:
+                if y_pred_crop.shape[1] == 1:
+                    # if only one channel, repeat for LPIPS
+                    y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
+                    y = y.repeat(1, 3, 1, 1)
+
+                # value for LPIPS needs to be in range [-1, 1]
+                loss_v = loss_v + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1, self.gen_target_generator)
                     
             if self.use_mask and self.l1_mask:
                 for p in self.mask.parameters():
@@ -1478,7 +1477,8 @@ class Trainer:
             # Where epoch runs TODO : reconstruct epoch iterations (train D more)
             mean_loss = self.train_epoch(self.train_dataloader)
             if self.discrimintor is not None:
-                mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
+                print("magic starts here")
+                #mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
             
             # offset because of evaluate before loop
             self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp, mean_gan_loss=mean_gan_loss)
