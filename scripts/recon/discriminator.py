@@ -73,7 +73,7 @@ class BaselineDiscriminator(nn.Module):
         max_channels: int = 512,
         use_norm: bool = False,
         norm_type: str = "bn",
-        patch_output: bool = True,
+        patch_output: bool = False,
         negative_slope: float = 0.2,
     ):
         super().__init__()
