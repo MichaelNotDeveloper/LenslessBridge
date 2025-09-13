@@ -1115,7 +1115,7 @@ class Trainer:
                 )
                 
             # -- add discriminator loss to total loss
-            if self.gan:
+            if self.discrimintor is not None:
                 if y_pred_crop.shape[1] == 1:
                     # if only one channel, repeat for LPIPS
                     y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
