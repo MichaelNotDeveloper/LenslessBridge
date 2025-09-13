@@ -265,31 +265,3 @@ class BaselineDiscriminator(nn.Module):
             return determ_generator
         else:
             raise ValueError(f"Unknown target_type: {target_type}. Use 'Rand' or 'Determ'")
-
-# ===== Примеры использования =====
-if __name__ == "__main__":
-    # Пример PatchGAN (карта)
-    D_patch = SimpleDiscriminator(
-        in_channels=3,
-        img_size=256,
-        num_layers=4,      # 4 раза поделим размер пополам: 256->128->64->32->16, выходная карта ~16x16
-        base_channels=64,
-        patch_output=True, # вернуть карту
-        use_norm=False,    # по умолчанию без нормализации — стабильнее для D
-    )
-    x = torch.randn(8, 3, 256, 256)
-    y = D_patch(x)
-    print("Patch output:", y.shape)  # ожидаемо: (8, 1, ~16, ~16)
-
-    # Пример глобального скора (скаляр)
-    D_global = SimpleDiscriminator(
-        in_channels=1,
-        img_size=(128, 128),
-        num_layers=3,       # 128->64->32->16
-        base_channels=32,
-        patch_output=False, # вернуть скаляр
-        use_norm=False,
-    )
-    xg = torch.randn(8, 1, 128, 128)
-    yg = D_global(xg)
-    print("Global score:", yg.shape)  # (8, 1)
