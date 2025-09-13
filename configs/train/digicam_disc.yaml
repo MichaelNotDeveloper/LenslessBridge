@@ -33,9 +33,9 @@ simulation:
   mask2sensor: 0.002
 
 training:
-  batch_size: 4
+  batch_size: 16
   epoch: 25
-  eval_batch_size: 4
+  eval_batch_size: 16
 
 reconstruction:
   method: unrolled_admm
