@@ -166,6 +166,7 @@ class BaselineDiscriminator(nn.Module):
                 targets = torch.tensor(targets, device=fake_logits.device)
         
         # Вычисляем MSE лосс
+        print(fake_logits.shape, targets.shape)
         loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), targets)
         return loss
 
