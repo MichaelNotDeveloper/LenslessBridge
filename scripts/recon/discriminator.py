@@ -124,147 +124,147 @@ class BaselineDiscriminator(nn.Module):
             h = self.pool(h).flatten(1)    # (B,C)
             return self.fc(h)              # (B,1)
 
-def generator_loss_fn(self, fake_logits: torch.Tensor, target_generator=None) -> torch.Tensor:
-    """
-    Вычисляет лосс для генератора.
-    
-    Parameters
-    ----------
-    fake_logits : torch.Tensor
-        Логиты дискриминатора для сгенерированных изображений.
-    target_generator : callable, optional
-        Функция для генерации целевых значений. Если None, используется self.gen_target_generator.
+    def generator_loss_fn(self, fake_logits: torch.Tensor, target_generator=None) -> torch.Tensor:
+        """
+        Вычисляет лосс для генератора.
         
-    Returns
-    -------
-    torch.Tensor
-        Лосс генератора.
-    """
-    if target_generator is None:
-        target_generator = self.gen_target_generator
-    
-    # Генерируем целевые значения
-    batch_size = fake_logits.shape[0]
-    if isinstance(target_generator, str):
-        if target_generator == "Rand":
-            # Случайные значения в диапазоне [0.0, 0.3]
-            targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
-        elif target_generator == "Determ":
-            # Детерминированные значения (например, 0.1)
-            targets = torch.full((batch_size,), 0.1, device=fake_logits.device)
+        Parameters
+        ----------
+        fake_logits : torch.Tensor
+            Логиты дискриминатора для сгенерированных изображений.
+        target_generator : callable, optional
+            Функция для генерации целевых значений. Если None, используется self.gen_target_generator.
+            
+        Returns
+        -------
+        torch.Tensor
+            Лосс генератора.
+        """
+        if target_generator is None:
+            target_generator = self.gen_target_generator
+        
+        # Генерируем целевые значения
+        batch_size = fake_logits.shape[0]
+        if isinstance(target_generator, str):
+            if target_generator == "Rand":
+                # Случайные значения в диапазоне [0.0, 0.3]
+                targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
+            elif target_generator == "Determ":
+                # Детерминированные значения (например, 0.1)
+                targets = torch.full((batch_size,), 0.1, device=fake_logits.device)
+            else:
+                raise ValueError(f"Unknown target_generator type: {target_generator}")
         else:
-            raise ValueError(f"Unknown target_generator type: {target_generator}")
-    else:
-        # Если это функция, вызываем её
-        targets = target_generator(batch_size)
-        if isinstance(targets, torch.Tensor):
-            targets = targets.to(fake_logits.device)
-        else:
-            targets = torch.tensor(targets, device=fake_logits.device)
-    
-    # Вычисляем MSE лосс
-    loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), targets)
-    return loss
+            # Если это функция, вызываем её
+            targets = target_generator(batch_size)
+            if isinstance(targets, torch.Tensor):
+                targets = targets.to(fake_logits.device)
+            else:
+                targets = torch.tensor(targets, device=fake_logits.device)
+        
+        # Вычисляем MSE лосс
+        loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), targets)
+        return loss
 
-def discriminator_loss_fn(self, real_logits: torch.Tensor, fake_logits: torch.Tensor, 
-                         real_target_generator=None, fake_target_generator=None) -> torch.Tensor:
-    """
-    Вычисляет лосс для дискриминатора.
-    
-    Parameters
-    ----------
-    real_logits : torch.Tensor
-        Логиты дискриминатора для реальных изображений.
-    fake_logits : torch.Tensor
-        Логиты дискриминатора для сгенерированных изображений.
-    real_target_generator : callable or str, optional
-        Функция для генерации целевых значений для реальных изображений.
-    fake_target_generator : callable or str, optional
-        Функция для генерации целевых значений для сгенерированных изображений.
+    def discriminator_loss_fn(self, real_logits: torch.Tensor, fake_logits: torch.Tensor, 
+                            real_target_generator=None, fake_target_generator=None) -> torch.Tensor:
+        """
+        Вычисляет лосс для дискриминатора.
         
-    Returns
-    -------
-    torch.Tensor
-        Лосс дискриминатора.
-    """
-    if real_target_generator is None:
-        real_target_generator = self.real_target_generator
-    if fake_target_generator is None:
-        fake_target_generator = self.gen_target_generator
-    
-    batch_size = real_logits.shape[0]
-    
-    # Генерируем целевые значения для реальных изображений
-    if isinstance(real_target_generator, str):
-        if real_target_generator == "Rand":
-            # Случайные значения в диапазоне [0.7, 1.2]
-            real_targets = torch.rand(batch_size, device=real_logits.device) * 0.5 + 0.7
-        elif real_target_generator == "Determ":
-            # Детерминированные значения (например, 0.9)
-            real_targets = torch.full((batch_size,), 0.9, device=real_logits.device)
+        Parameters
+        ----------
+        real_logits : torch.Tensor
+            Логиты дискриминатора для реальных изображений.
+        fake_logits : torch.Tensor
+            Логиты дискриминатора для сгенерированных изображений.
+        real_target_generator : callable or str, optional
+            Функция для генерации целевых значений для реальных изображений.
+        fake_target_generator : callable or str, optional
+            Функция для генерации целевых значений для сгенерированных изображений.
+            
+        Returns
+        -------
+        torch.Tensor
+            Лосс дискриминатора.
+        """
+        if real_target_generator is None:
+            real_target_generator = self.real_target_generator
+        if fake_target_generator is None:
+            fake_target_generator = self.gen_target_generator
+        
+        batch_size = real_logits.shape[0]
+        
+        # Генерируем целевые значения для реальных изображений
+        if isinstance(real_target_generator, str):
+            if real_target_generator == "Rand":
+                # Случайные значения в диапазоне [0.7, 1.2]
+                real_targets = torch.rand(batch_size, device=real_logits.device) * 0.5 + 0.7
+            elif real_target_generator == "Determ":
+                # Детерминированные значения (например, 0.9)
+                real_targets = torch.full((batch_size,), 0.9, device=real_logits.device)
+            else:
+                raise ValueError(f"Unknown real_target_generator type: {real_target_generator}")
         else:
-            raise ValueError(f"Unknown real_target_generator type: {real_target_generator}")
-    else:
-        real_targets = real_target_generator(batch_size)
-        if isinstance(real_targets, torch.Tensor):
-            real_targets = real_targets.to(real_logits.device)
+            real_targets = real_target_generator(batch_size)
+            if isinstance(real_targets, torch.Tensor):
+                real_targets = real_targets.to(real_logits.device)
+            else:
+                real_targets = torch.tensor(real_targets, device=real_logits.device)
+        
+        # Генерируем целевые значения для сгенерированных изображений
+        if isinstance(fake_target_generator, str):
+            if fake_target_generator == "Rand":
+                # Случайные значения в диапазоне [0.0, 0.3]
+                fake_targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
+            elif fake_target_generator == "Determ":
+                # Детерминированные значения (например, 0.1)
+                fake_targets = torch.full((batch_size,), 0.1, device=fake_logits.device)
+            else:
+                raise ValueError(f"Unknown fake_target_generator type: {fake_target_generator}")
         else:
-            real_targets = torch.tensor(real_targets, device=real_logits.device)
-    
-    # Генерируем целевые значения для сгенерированных изображений
-    if isinstance(fake_target_generator, str):
-        if fake_target_generator == "Rand":
-            # Случайные значения в диапазоне [0.0, 0.3]
-            fake_targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
-        elif fake_target_generator == "Determ":
-            # Детерминированные значения (например, 0.1)
-            fake_targets = torch.full((batch_size,), 0.1, device=fake_logits.device)
-        else:
-            raise ValueError(f"Unknown fake_target_generator type: {fake_target_generator}")
-    else:
-        fake_targets = fake_target_generator(batch_size)
-        if isinstance(fake_targets, torch.Tensor):
-            fake_targets = fake_targets.to(fake_logits.device)
-        else:
-            fake_targets = torch.tensor(fake_targets, device=fake_logits.device)
-    
-    # Вычисляем MSE лоссы
-    real_loss = torch.nn.functional.mse_loss(real_logits.squeeze(), real_targets)
-    fake_loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), fake_targets)
-    
-    # Общий лосс дискриминатора
-    total_loss = real_loss + fake_loss
-    return total_loss
+            fake_targets = fake_target_generator(batch_size)
+            if isinstance(fake_targets, torch.Tensor):
+                fake_targets = fake_targets.to(fake_logits.device)
+            else:
+                fake_targets = torch.tensor(fake_targets, device=fake_logits.device)
+        
+        # Вычисляем MSE лоссы
+        real_loss = torch.nn.functional.mse_loss(real_logits.squeeze(), real_targets)
+        fake_loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), fake_targets)
+        
+        # Общий лосс дискриминатора
+        total_loss = real_loss + fake_loss
+        return total_loss
 
-def get_target_generator(self, target_type: str, **kwargs):
-    """
-    Создает функцию генерации целевых значений в зависимости от типа.
-    
-    Parameters
-    ----------
-    target_type : str
-        Тип генерации: "Rand" для случайных значений, "Determ" для детерминированных.
-    **kwargs
-        Дополнительные параметры для генерации.
+    def get_target_generator(self, target_type: str, **kwargs):
+        """
+        Создает функцию генерации целевых значений в зависимости от типа.
         
-    Returns
-    -------
-    callable
-        Функция генерации целевых значений.
-    """
-    if target_type == "Rand":
-        min_val = kwargs.get('min_val', 0.0)
-        max_val = kwargs.get('max_val', 0.3)
-        def rand_generator(batch_size):
-            return torch.rand(batch_size) * (max_val - min_val) + min_val
-        return rand_generator
-    elif target_type == "Determ":
-        value = kwargs.get('value', 0.1)
-        def determ_generator(batch_size):
-            return torch.full((batch_size,), value)
-        return determ_generator
-    else:
-        raise ValueError(f"Unknown target_type: {target_type}. Use 'Rand' or 'Determ'")
+        Parameters
+        ----------
+        target_type : str
+            Тип генерации: "Rand" для случайных значений, "Determ" для детерминированных.
+        **kwargs
+            Дополнительные параметры для генерации.
+            
+        Returns
+        -------
+        callable
+            Функция генерации целевых значений.
+        """
+        if target_type == "Rand":
+            min_val = kwargs.get('min_val', 0.0)
+            max_val = kwargs.get('max_val', 0.3)
+            def rand_generator(batch_size):
+                return torch.rand(batch_size) * (max_val - min_val) + min_val
+            return rand_generator
+        elif target_type == "Determ":
+            value = kwargs.get('value', 0.1)
+            def determ_generator(batch_size):
+                return torch.full((batch_size,), value)
+            return determ_generator
+        else:
+            raise ValueError(f"Unknown target_type: {target_type}. Use 'Rand' or 'Determ'")
 
 # ===== Примеры использования =====
 if __name__ == "__main__":

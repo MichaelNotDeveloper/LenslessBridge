@@ -1123,6 +1123,7 @@ class Trainer:
 
                 # value for LPIPS needs to be in range [-1, 1]
                 loss_v = loss_v + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1, self.gen_target_generator)
+
                     
             if self.use_mask and self.l1_mask:
                 for p in self.mask.parameters():
