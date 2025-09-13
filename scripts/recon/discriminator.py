@@ -170,7 +170,7 @@ class BaselineDiscriminator(nn.Module):
         loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), targets)
         return loss
 
-    def discriminator_loss_fn(self, real_logits: torch.Tensor, fake_logits: torch.Tensor, 
+    def discriminator_loss_fn(self, generated_images: torch.Tensor, real_images: torch.Tensor, 
                             real_target_generator=None, fake_target_generator=None) -> torch.Tensor:
         """
         Вычисляет лосс для дискриминатора.

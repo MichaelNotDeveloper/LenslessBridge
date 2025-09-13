@@ -964,42 +964,6 @@ class Trainer:
             self.scheduler = torch.optim.lr_scheduler.LambdaLR(
                 self.optimizer, lr_lambda=learning_rate_function, last_epoch=last_epoch
             )
-    # TODO train cycle
-    def train_gan_epoch(self, data_loader, generated_loader):
-        """
-        Train the GAN for one epoch.
-
-        Parameters
-        ----------
-        data_loader : :py:class:`torch.utils.data.DataLoader`
-            Data loader to use for training.
-        generated_loader : :py:class:`torch.utils.data.DataLoader`
-            Data loader to use for generating.
-        """
-        self.gan.train()
-        mean_loss = 0.0
-        pbar = tqdm(data_loader)
-        i = 1.0
-        
-        for batch in pbar:
-            real_data = batch[1].to(self.device)
-            generated_data = generated_loader[1].to(self.device)
-
-            real_data_logits = nn.functional.F.logsigmoid(self.gan(real_data))
-            genereated_data_logits = nn.functional.F.logsigmoid(self.gan(generated_data))
-            loss = nn.loss.MSE(genereated_data_logits, self.gen_target_generator(genereated_data_logits.shape[0])) + \
-                nn.loss.MSE(real_data_logits, self.real_target_generator(real_data_logits.shape[0]))
-
-            self.discriminator_optimizer.zero_grad()
-            loss.backward()
-            self.discriminator_optimizer.step()
-
-            mean_loss += (loss.item() - mean_loss) * (1 / i)
-            pbar.set_description(f"loss : {mean_loss}")
-            i += 1
-
-        self.print(f"loss : {mean_loss}")
-        return mean_loss
 
     def train_epoch(self, data_loader):
         """
@@ -1016,7 +980,9 @@ class Trainer:
             Mean loss of the epoch.
         """
         mean_loss = 0.0
+        disc_mean_loss = 0.0
         i = 1.0
+        disc_i = 1.0
         pbar = tqdm(data_loader)
         self.recon.train()
         for batch in pbar:
@@ -1101,149 +1067,153 @@ class Trainer:
                     self.crop["vertical"][0] : self.crop["vertical"][1],
                     self.crop["horizontal"][0] : self.crop["horizontal"][1],
                 ]
+            # train GAN 
+            
+            
+                        
+            if np.random.randint(self.gan_amount_of_epoch) == 0:
+                loss_v = self.Loss(y_pred_crop, y)
 
-            loss_v = self.Loss(y_pred_crop, y)
-
-            # add LPIPS loss
-            if self.lpips:
-
-                if y_pred_crop.shape[1] == 1:
-                    # if only one channel, repeat for LPIPS
-                    y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
-                    y = y.repeat(1, 3, 1, 1)
-
-                # value for LPIPS needs to be in range [-1, 1]
-                loss_v = loss_v + self.lpips * torch.mean(
-                    self.Loss_lpips(2 * y_pred_crop - 1, 2 * y - 1)
-                )
-                
-            # -- add discriminator loss to total loss
-            if self.discrimintor is not None:
-                if y_pred_crop.shape[1] == 1:
-                    # if only one channel, repeat for LPIPS
-                    y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
-                    y = y.repeat(1, 3, 1, 1)
-
-                # value for LPIPS needs to be in range [-1, 1]
-                loss_v = loss_v + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(2 * y_pred_crop - 1, self.gen_target_generator)
-
-                    
-            if self.use_mask and self.l1_mask:
-                for p in self.mask.parameters():
-                    if p.requires_grad:
-                        loss_v = loss_v + self.l1_mask * torch.mean(torch.abs(p))
-
-            if self.unrolled_output_factor:
-                # -- normalize
-                unrolled_out_max = torch.amax(camera_inv_out, dim=(-1, -2, -3), keepdim=True) + eps
-                camera_inv_out_norm = camera_inv_out / unrolled_out_max
-
-                # -- convert to CHW for loss and remove depth
-                camera_inv_out_norm = camera_inv_out_norm.reshape(
-                    -1, *camera_inv_out.shape[-3:]
-                ).movedim(-1, -3)
-
-                # -- extraction region of interest for loss
-                if hasattr(self.train_dataset, "alignment"):
-                    if self.train_dataset.alignment is not None:
-                        camera_inv_out_norm = self.train_dataset.extract_roi(
-                            camera_inv_out_norm, axis=(-2, -1)
-                        )
-                    else:
-                        camera_inv_out_norm = self.train_dataset.extract_roi(
-                            camera_inv_out_norm,
-                            axis=(-2, -1),
-                            # y=y   # lensed already extracted before
-                        )
-                    assert np.all(y.shape == camera_inv_out_norm.shape)
-                elif self.crop is not None:
-                    camera_inv_out_norm = camera_inv_out_norm[
-                        ...,
-                        self.crop["vertical"][0] : self.crop["vertical"][1],
-                        self.crop["horizontal"][0] : self.crop["horizontal"][1],
-                    ]
-
-                # -- compute unrolled output loss
-                loss_unrolled = self.Loss(camera_inv_out_norm, y)
-
-                # -- add LPIPS loss
+                # add LPIPS loss
                 if self.lpips:
-                    if camera_inv_out_norm.shape[1] == 1:
+
+                    if y_pred_crop.shape[1] == 1:
                         # if only one channel, repeat for LPIPS
-                        camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
+                        y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
+                        y = y.repeat(1, 3, 1, 1)
 
                     # value for LPIPS needs to be in range [-1, 1]
-                    loss_unrolled = loss_unrolled + self.lpips * torch.mean(
-                        self.Loss_lpips(2 * camera_inv_out_norm - 1, 2 * y - 1)
+                    loss_v = loss_v + self.lpips * torch.mean(
+                        self.Loss_lpips(2 * y_pred_crop - 1, 2 * y - 1)
                     )
-                
-                # -- add unrolled loss to total loss
-                loss_v = loss_v + self.unrolled_output_factor * loss_unrolled
-                
-            if self.pre_proc_aux:
-                # -- normalize
-                unrolled_out_max = torch.amax(camera_inv_out, dim=(-1, -2, -3), keepdim=True) + eps
-                camera_inv_out_norm = camera_inv_out / unrolled_out_max
+                    
+                # -- add discriminator loss to total loss
+                if self.discrimintor is not None:
+                    if y_pred_crop.shape[1] == 1:
+                        # if only one channel, repeat for LPIPS
+                        y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
+                        y = y.repeat(1, 3, 1, 1)
 
-                err = torch.mean(
-                    self.recon.reconstruction_error(
-                        prediction=camera_inv_out_norm,
-                        # prediction=y_pred,
-                        lensless=pre_proc_out,
-                    )
-                )
-                loss_v = loss_v + self.pre_proc_aux * err
+                    # value for LPIPS needs to be in range [-1, 1]
+                    loss_v = loss_v + self.discriminator_loss_coeff * self.discrimintor.generator_loss_fn(y_pred, self.gen_target_generator)
 
-            # backward pass
-            loss_v.backward()
+                        
+                if self.use_mask and self.l1_mask:
+                    for p in self.mask.parameters():
+                        if p.requires_grad:
+                            loss_v = loss_v + self.l1_mask * torch.mean(torch.abs(p))
 
-            # check mask parameters are learning
-            if self.use_mask:
-                for p in self.mask.parameters():
-                    assert p.grad is not None
+                if self.unrolled_output_factor:
+                    # -- normalize
+                    unrolled_out_max = torch.amax(camera_inv_out, dim=(-1, -2, -3), keepdim=True) + eps
+                    camera_inv_out_norm = camera_inv_out / unrolled_out_max
 
-            if self.clip_grad_norm is not None:
-                if self.use_mask:
-                    torch.nn.utils.clip_grad_norm_(self.mask.parameters(), self.clip_grad_norm)
-                torch.nn.utils.clip_grad_norm_(self.recon.parameters(), self.clip_grad_norm)
+                    # -- convert to CHW for loss and remove depth
+                    camera_inv_out_norm = camera_inv_out_norm.reshape(
+                        -1, *camera_inv_out.shape[-3:]
+                    ).movedim(-1, -3)
 
-            # if any gradient is NaN, skip training step
-            if self.skip_NAN:
-                recon_is_NAN = False
-                mask_is_NAN = False
-                for param in self.recon.parameters():
-                    if param.grad is not None and torch.isnan(param.grad).any():
-                        recon_is_NAN = True
-                        break
-                if self.use_mask:
-                    for param in self.mask.parameters():
-                        if param.grad is not None and torch.isnan(param.grad).any():
-                            mask_is_NAN = True
-                            break
-                if recon_is_NAN or mask_is_NAN:
-                    if recon_is_NAN:
-                        self.print(
-                            "NAN detected in reconstruction gradient, skipping training step"
+                    # -- extraction region of interest for loss
+                    if hasattr(self.train_dataset, "alignment"):
+                        if self.train_dataset.alignment is not None:
+                            camera_inv_out_norm = self.train_dataset.extract_roi(
+                                camera_inv_out_norm, axis=(-2, -1)
+                            )
+                        else:
+                            camera_inv_out_norm = self.train_dataset.extract_roi(
+                                camera_inv_out_norm,
+                                axis=(-2, -1),
+                                # y=y   # lensed already extracted before
+                            )
+                        assert np.all(y.shape == camera_inv_out_norm.shape)
+                    elif self.crop is not None:
+                        camera_inv_out_norm = camera_inv_out_norm[
+                            ...,
+                            self.crop["vertical"][0] : self.crop["vertical"][1],
+                            self.crop["horizontal"][0] : self.crop["horizontal"][1],
+                        ]
+
+                    # -- compute unrolled output loss
+                    loss_unrolled = self.Loss(camera_inv_out_norm, y)
+
+                    # -- add LPIPS loss
+                    if self.lpips:
+                        if camera_inv_out_norm.shape[1] == 1:
+                            # if only one channel, repeat for LPIPS
+                            camera_inv_out_norm = camera_inv_out_norm.repeat(1, 3, 1, 1)
+
+                        # value for LPIPS needs to be in range [-1, 1]
+                        loss_unrolled = loss_unrolled + self.lpips * torch.mean(
+                            self.Loss_lpips(2 * camera_inv_out_norm - 1, 2 * y - 1)
                         )
-                    if mask_is_NAN:
-                        self.print("NAN detected in mask gradient, skipping training step")
-                    i += 1
-                    continue
+                    
+                    # -- add unrolled loss to total loss
+                    loss_v = loss_v + self.unrolled_output_factor * loss_unrolled
+                    
+                if self.pre_proc_aux:
+                    # -- normalize
+                    unrolled_out_max = torch.amax(camera_inv_out, dim=(-1, -2, -3), keepdim=True) + eps
+                    camera_inv_out_norm = camera_inv_out / unrolled_out_max
 
-            self.optimizer.step()
-            if not self.lr_step_epoch:
-                self.scheduler.step()
-            self.optimizer.zero_grad(set_to_none=True)
+                    err = torch.mean(
+                        self.recon.reconstruction_error(
+                            prediction=camera_inv_out_norm,
+                            # prediction=y_pred,
+                            lensless=pre_proc_out,
+                        )
+                    )
+                    loss_v = loss_v + self.pre_proc_aux * err
 
-            # update mask
-            if self.use_mask:
-                self.mask.update_mask()
-                if self.simulated_dataset_trainable_mask:
-                    self.train_dataloader.dataset.set_psf()
+                # backward pass
+                loss_v.backward()
 
-            mean_loss += (loss_v.item() - mean_loss) * (1 / i)
-            pbar.set_description(f"loss : {mean_loss}")
-            i += 1
+                # check mask parameters are learning
+                if self.use_mask:
+                    for p in self.mask.parameters():
+                        assert p.grad is not None
+
+                if self.clip_grad_norm is not None:
+                    if self.use_mask:
+                        torch.nn.utils.clip_grad_norm_(self.mask.parameters(), self.clip_grad_norm)
+                    torch.nn.utils.clip_grad_norm_(self.recon.parameters(), self.clip_grad_norm)
+
+                # if any gradient is NaN, skip training step
+                if self.skip_NAN:
+                    recon_is_NAN = False
+                    mask_is_NAN = False
+                    for param in self.recon.parameters():
+                        if param.grad is not None and torch.isnan(param.grad).any():
+                            recon_is_NAN = True
+                            break
+                    if self.use_mask:
+                        for param in self.mask.parameters():
+                            if param.grad is not None and torch.isnan(param.grad).any():
+                                mask_is_NAN = True
+                                break
+                    if recon_is_NAN or mask_is_NAN:
+                        if recon_is_NAN:
+                            self.print(
+                                "NAN detected in reconstruction gradient, skipping training step"
+                            )
+                        if mask_is_NAN:
+                            self.print("NAN detected in mask gradient, skipping training step")
+                        i += 1
+                        continue
+                
+                self.optimizer.step()
+                if not self.lr_step_epoch:
+                    self.scheduler.step()
+                self.optimizer.zero_grad(set_to_none=True)
+
+                # update mask
+                if self.use_mask:
+                    self.mask.update_mask()
+                    if self.simulated_dataset_trainable_mask:
+                        self.train_dataloader.dataset.set_psf()
+
+                mean_loss += (loss_v.item() - mean_loss) * (1 / i)
+                pbar.set_description(f"loss : {mean_loss}")
+                i += 1
 
         self.print(f"loss : {mean_loss}")
 
