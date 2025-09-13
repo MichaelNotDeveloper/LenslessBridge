@@ -124,7 +124,7 @@ class BaselineDiscriminator(nn.Module):
             h = self.pool(h).flatten(1)    # (B,C)
             return self.fc(h)              # (B,1)
 
-    def generator_loss_fn(self, fake_logits: torch.Tensor, target_generator=None) -> torch.Tensor:
+    def generator_loss_fn(self, generated_images: torch.Tensor, target_generator=None) -> torch.Tensor:
         """
         Вычисляет лосс для генератора.
         
@@ -140,6 +140,8 @@ class BaselineDiscriminator(nn.Module):
         torch.Tensor
             Лосс генератора.
         """
+        fake_logits = self.forward(generated_images)
+        
         if target_generator is None:
             target_generator = self.gen_target_generator
         
@@ -147,6 +149,7 @@ class BaselineDiscriminator(nn.Module):
         batch_size = fake_logits.shape[0]
         if isinstance(target_generator, str):
             if target_generator == "Rand":
+                print("Random generator used")
                 # Случайные значения в диапазоне [0.0, 0.3]
                 targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
             elif target_generator == "Determ":
@@ -233,7 +236,7 @@ class BaselineDiscriminator(nn.Module):
         fake_loss = torch.nn.functional.mse_loss(fake_logits.squeeze(), fake_targets)
         
         # Общий лосс дискриминатора
-        total_loss = real_loss + fake_loss
+        total_loss = 0.5 * (real_loss + fake_loss)
         return total_loss
 
     def get_target_generator(self, target_type: str, **kwargs):
