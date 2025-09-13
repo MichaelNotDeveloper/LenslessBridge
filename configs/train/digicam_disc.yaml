@@ -70,6 +70,6 @@ reconstruction:
     nc: [32,64,116,128]
 
 gan:
-  loss_coeff : # loss for Discriminator
-  epoch_diff : # for one Gen epochs use "epoch_diff" epochs for Discriminator
+  loss_coeff : 0.001 # loss for Discriminator
+  epoch_diff : 2 # for one Gen epochs use "epoch_diff" epochs for Discriminator
   generator : "Rand" # Rand or Determ
