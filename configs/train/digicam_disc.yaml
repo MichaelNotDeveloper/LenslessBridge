@@ -33,7 +33,7 @@ simulation:
   mask2sensor: 0.002
 
 training:
-  batch_size: 16
+  batch_size: 8
   epoch: 25
   eval_batch_size: 16
 
@@ -73,3 +73,5 @@ gan:
   loss_coeff : 0.001 # loss for Discriminator
   epoch_diff : 2 # for one Gen epochs use "epoch_diff" epochs for Discriminator
   generator : "Rand" # Rand or Determ
+  warmup : True
+  
