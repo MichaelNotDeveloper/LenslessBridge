@@ -1080,7 +1080,7 @@ class Trainer:
                     print("-" * 8) 
                     y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
                     y = y.repeat(1, 3, 1, 1)
-                disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred, y, self.real_target_generator, self.gen_target_generator)
+                disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred_crop, y, self.real_target_generator, self.gen_target_generator)
                 disc_loss.backwards()
                 self.discriminator_optimizer.step()
                 self.optimizer.zero_grad(set_to_none=True)
