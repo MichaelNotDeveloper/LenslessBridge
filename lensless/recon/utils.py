@@ -1076,11 +1076,8 @@ class Trainer:
             if self.gan_amount_of_epoch:
                 if y_pred_crop.shape[1] == 1:
                     # if only one channel, repeat for discriminator
-                    print(y_pred_crop.shape, y.shape)
-                    print("-" * 8) 
                     y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
                     y = y.repeat(1, 3, 1, 1)
-                    
                 disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred_crop, y, self.real_target_generator, self.gen_target_generator)
                 disc_loss.backwards()
                 self.discriminator_optimizer.step()
@@ -1090,7 +1087,7 @@ class Trainer:
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}")
                 disc_i += 1
             
-            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not warmup or delta_score >= warmup_score):
+            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not warmup or delta_score >= self.score_diff):
                 warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
 

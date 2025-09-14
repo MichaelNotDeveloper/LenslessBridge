@@ -243,10 +243,10 @@ class BaselineDiscriminator(nn.Module):
         total_loss = 0.5 * (real_loss + fake_loss)
        
         # Лосс для прогрева дискриминатора
-        real_loss_abs = torch.nn.functional.mae_loss(real_logits.squeeze(), real_targets)
-        fake_loss_abs = torch.nn.functional.mae_loss(fake_logits.squeeze(), fake_targets)
+        real_loss_abs = torch.nn.functional.L1Loss(real_logits.squeeze(), real_targets)
+        fake_loss_abs = torch.nn.functional.L1Loss(fake_logits.squeeze(), fake_targets)
         delta_score = torch.abs(real_loss_abs - fake_loss_abs)
-        
+
         return total_loss, delta_score
 
     def get_target_generator(self, target_type: str, **kwargs):
