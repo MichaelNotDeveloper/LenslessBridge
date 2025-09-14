@@ -167,7 +167,7 @@ class BaselineDiscriminator(nn.Module):
         
         # Вычисляем MSE лосс
         print(fake_logits.shape, targets.shape)
-        loss = torch.log(torch.logtorch.nn.functional.mse_loss(torch.nn.sigmoid(fake_logits.squeeze()), targets))
+        loss = torch.log(torch.logtorch.nn.functional.mse_loss(torch.Sigmoid(fake_logits.squeeze()), targets))
         return loss
 
     def discriminator_loss_fn(self, generated_images: torch.Tensor, real_images: torch.Tensor, 
@@ -236,8 +236,8 @@ class BaselineDiscriminator(nn.Module):
                 fake_targets = torch.tensor(fake_targets, device=fake_logits.device)
         
         # Вычисляем MSE лоссы
-        real_loss = torch.log(torch.nn.functional.mse_loss(torch.nn.sigmoid(real_logits.squeeze()), real_targets))
-        fake_loss = torch.log(torch.nn.functional.mse_loss(torch.nn.sigmoid(fake_logits.squeeze()), fake_targets))
+        real_loss = torch.log(torch.nn.functional.mse_loss(torch.Sigmoid(real_logits.squeeze()), real_targets))
+        fake_loss = torch.log(torch.nn.functional.mse_loss(torch.Sigmoid(fake_logits.squeeze()), fake_targets))
         
         # Общий лосс дискриминатора
         total_loss = 0.5 * (real_loss + fake_loss)
