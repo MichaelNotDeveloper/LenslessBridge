@@ -1087,7 +1087,7 @@ class Trainer:
                 self.discriminator_optimizer.step()
                 self.discriminator_optimizer.zero_grad()
                 self.optimizer.zero_grad()  
-                disc_score_diff += (delta_score.item() - disc_mean_loss) / (1 / disc_i)
+                disc_score_diff += (delta_score.item() - disc_score_diff) / (1 / disc_i)
                 disc_mean_loss += (disc_loss.item() - disc_mean_loss) * (1 / disc_i)
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
                 disc_i += 1
