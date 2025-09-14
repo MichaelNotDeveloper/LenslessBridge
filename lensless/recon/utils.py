@@ -1087,7 +1087,7 @@ class Trainer:
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}")
                 disc_i += 1
             
-            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not warmup or delta_score >= self.score_diff):
+            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or delta_score >= self.score_diff):
                 warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
 
