@@ -235,8 +235,8 @@ class BaselineDiscriminator(nn.Module):
                 fake_targets = torch.tensor(fake_targets, device=fake_logits.device)
         
         # Вычисляем MSE лоссы
-        real_loss = torch.nn.functional.binary_cross_entropy_with_logits(real_logits.sqeeze(), real_targets)
-        fake_loss = torch.nn.functional.binary_cross_entropy_with_logits(fake_logits.sqeeze(), fake_targets)
+        real_loss = torch.nn.functional.binary_cross_entropy_with_logits(real_logits.squeeze(), real_targets)
+        fake_loss = torch.nn.functional.binary_cross_entropy_with_logits(fake_logits.squeeze(), fake_targets)
         
         # Общий лосс дискриминатора
         total_loss = 0.5 * (real_loss + fake_loss)
