@@ -1083,7 +1083,7 @@ class Trainer:
                 self.discriminator_optimizer.step()
                 self.optimizer.zero_grad(set_to_none=True)
                 
-                disc_mean_loss += (disc_mean_loss.item() - disc_loss) * (1 / disc_i)
+                disc_mean_loss += (disc_mean_loss - disc_loss.item()) * (1 / disc_i)
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}")
                 disc_i += 1
             
