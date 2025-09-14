@@ -988,7 +988,8 @@ class Trainer:
         disc_i = 1.0
         pbar = tqdm(data_loader)
         self.recon.train()
-        if self.discrimintor:
+        if self.discrimintor is not None:
+            print("Using Discriminator")
             self.discrimintor.train()
         for batch in pbar:
             # get batch
@@ -1079,10 +1080,10 @@ class Trainer:
                     print("redactor is active")
                     y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
                     y = y.repeat(1, 3, 1, 1)
+                self.optimizer.zero_grad(set_to_none=True)
                 disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(2 * y_pred_crop - 1, 2 * y - 1, self.real_target_generator, self.gen_target_generator)
                 disc_loss.backward()
                 self.discriminator_optimizer.step()
-                self.optimizer.zero_grad(set_to_none=True)
                 
                 disc_mean_loss += (disc_mean_loss + disc_loss.item()) * (1 / disc_i)
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}")
