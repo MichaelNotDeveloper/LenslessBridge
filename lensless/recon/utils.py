@@ -1076,9 +1076,9 @@ class Trainer:
             if self.gan_amount_of_epoch:
                 if y_pred.shape[1] == 1:
                     # if only one channel, repeat for discriminator
-                    print(y_pred.shape, y.shape)
+                    print(y_pred_crop.shape, y.shape)
                     print("-" * 8) 
-                    y_pred = y_pred.repeat(1, 3, 1, 1)
+                    y_pred_crop = y_pred_crop.repeat(1, 3, 1, 1)
                     y = y.repeat(1, 3, 1, 1)
                 disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred, y, self.real_target_generator, self.gen_target_generator)
                 disc_loss.backwards()
