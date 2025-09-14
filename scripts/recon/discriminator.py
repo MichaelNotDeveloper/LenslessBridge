@@ -196,6 +196,9 @@ class BaselineDiscriminator(nn.Module):
         if fake_target_generator is None:
             fake_target_generator = self.gen_target_generator
         
+        real_logits = self.forward(real_images)
+        fake_logits = self.forward(generated_images)
+        
         batch_size = real_logits.shape[0]
         
         # Генерируем целевые значения для реальных изображений
@@ -238,7 +241,13 @@ class BaselineDiscriminator(nn.Module):
         
         # Общий лосс дискриминатора
         total_loss = 0.5 * (real_loss + fake_loss)
-        return total_loss
+       
+        # Лосс для прогрева дискриминатора
+        real_loss_abs = torch.nn.functional.mae_loss(real_logits.squeeze(), real_targets)
+        fake_loss_abs = torch.nn.functional.mae_loss(fake_logits.squeeze(), fake_targets)
+        delta_score = torch.abs(real_loss_abs - fake_loss_abs)
+        
+        return total_loss, delta_score
 
     def get_target_generator(self, target_type: str, **kwargs):
         """

@@ -570,9 +570,11 @@ class Trainer:
         discriminator_batch_size=None,
         discriminator_optimizer=None,
         discriminator_loss_coeff=0,
-        gan_amount_of_epoch=2,
+        gan_amount_of_epoch=1,
         gen_target_generator=None,
         real_target_generator=None,
+        warmup=False,
+        score_diff= 0.3
     ):
         """
         Class to train a reconstruction algorithm. Inspired by Trainer from `HuggingFace <https://huggingface.co/docs/transformers/main_classes/trainer>`__.
@@ -752,10 +754,10 @@ class Trainer:
         self.discriminator_loss_coeff = discriminator_loss_coeff 
         self.gen_target_generator = gen_target_generator if gen_target_generator is not None else lambda count : torch.rand(1, count) * 0.3 + 0.0
         self.real_target_generator = real_target_generator if real_target_generator is not None else lambda count : torch.rand(1, count) * 0.5 + 0.7
-        try:
-            self.discrimintor.generator_loss_fn
-        except e:
-            print(f"GENIUS {e}") 
+        self.discriminator_optimizer = discriminator_optimizer
+        self.warmup = warmup
+        self.score_diff = score_diff
+         
         # loss
         if loss == "l2":
             self.Loss = torch.nn.MSELoss()
@@ -819,7 +821,8 @@ class Trainer:
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
             "best_eval_score": 0,
-            "discriminator_LOSS": []
+            "discriminator_LOSS": [],
+            "delta_score" : []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }
@@ -898,7 +901,7 @@ class Trainer:
 
         elif self.optimizer_config.final_lr:
 
-            assert self.optimizer_config.final_lr < self.optimizer_config.lr
+            assert self.optimizer_config.final_lr < self.optimizer_config
             assert self.n_epoch is not None
 
             # # linear decay
@@ -986,7 +989,6 @@ class Trainer:
         pbar = tqdm(data_loader)
         self.recon.train()
         for batch in pbar:
-
             # get batch
             flip_lr = None
             flip_ud = None
@@ -1069,9 +1071,18 @@ class Trainer:
                 ]
             # train GAN 
             
+            if self.gan_amount_of_epoch:
+                disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred, y, self.real_target_generator, self.gen_target_generator)
+                disc_loss.backwards()
+                self.discriminator_optimizer.step()
+                self.optimizer.zero_grad(set_to_none=True)
+                
+                disc_mean_loss += (disc_mean_loss..item() - disc_loss) * (1 / disc_i)
+                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_loss}")
+                disc_i += 1
             
-                        
-            if np.random.randint(self.gan_amount_of_epoch) == 0:
+            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not warmup or delta_score >= warmup_score):
+                warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
 
                 # add LPIPS loss
@@ -1212,6 +1223,7 @@ class Trainer:
                         self.train_dataloader.dataset.set_psf()
 
                 mean_loss += (loss_v.item() - mean_loss) * (1 / i)
+                
                 pbar.set_description(f"loss : {mean_loss}")
                 i += 1
 
@@ -1219,7 +1231,7 @@ class Trainer:
 
         return mean_loss
 
-    def evaluate(self, mean_loss, epoch, disp=None, mean_gan_loss=0):
+    def evaluate(self, mean_loss, epoch, disp=None, mean_gan_loss=0, delta_score=0):
         """
         Evaluate the reconstruction algorithm on the test dataset.
 
