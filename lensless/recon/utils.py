@@ -1084,7 +1084,7 @@ class Trainer:
                 disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(2 * y_pred_crop - 1, 2 * y - 1, self.real_target_generator, self.gen_target_generator)
                 disc_loss.backward()
                 self.discriminator_optimizer.step()
-                self.optimizer.zero_grad(set_to_none=True)
+                self.discriminator_optimizer.zero_grad(set_to_none=True)
                 self.optimizer.zero_grad(set_to_none=True) 
                 disc_mean_loss += (disc_mean_loss + disc_loss.item()) * (1 / disc_i)
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff {self.score_diff}")
