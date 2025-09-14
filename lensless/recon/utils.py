@@ -1087,10 +1087,10 @@ class Trainer:
                 self.discriminator_optimizer.zero_grad()
                 self.optimizer.zero_grad() 
                 disc_mean_loss += (disc_mean_loss + disc_loss.item()) * (1 / disc_i)
-                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff {self.score_diff}")
+                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff {delta_score}")
                 disc_i += 1
             
-            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or delta_score >= self.score_diff):
+            if False and np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or delta_score >= self.score_diff):
                 self.warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
 
