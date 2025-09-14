@@ -774,6 +774,8 @@ def train_learned(config):
         discriminator_loss_coeff=config.gan.loss_coeff, # for inference
         gen_target_generator=config.gan.generator, # for inferenece
         real_target_generator=config.gan.generator, # for inferenece
+        warmup=config.warmup,
+        score_diff=config.score_diff
     )
 
     trainer.train(n_epoch=config.training.epoch, save_pt=save, disp=config.eval_disp_idx)
