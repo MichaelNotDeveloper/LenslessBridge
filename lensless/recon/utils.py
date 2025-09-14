@@ -984,6 +984,7 @@ class Trainer:
         """
         mean_loss = 0.0
         disc_mean_loss = 0.0
+        disc_score_diff = 0.0
         i = 1.0
         disc_i = 1.0
         pbar = tqdm(data_loader)
@@ -1085,9 +1086,10 @@ class Trainer:
                 disc_loss.backward()
                 self.discriminator_optimizer.step()
                 self.discriminator_optimizer.zero_grad()
-                self.optimizer.zero_grad() 
+                self.optimizer.zero_grad()  
+                disc_score_diff += (delta_score.item() - disc_mean_loss) / (1 / disc_i)
                 disc_mean_loss += (disc_loss.item() - disc_mean_loss) * (1 / disc_i)
-                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff {delta_score}")
+                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
                 disc_i += 1
             
             if False and np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or delta_score >= self.score_diff):
