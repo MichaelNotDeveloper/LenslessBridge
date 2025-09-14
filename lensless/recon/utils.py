@@ -988,6 +988,8 @@ class Trainer:
         disc_i = 1.0
         pbar = tqdm(data_loader)
         self.recon.train()
+        if self.discrimintor:
+            self.discrimintor.train()
         for batch in pbar:
             # get batch
             flip_lr = None
@@ -1073,7 +1075,9 @@ class Trainer:
             
             if self.gan_amount_of_epoch:
                 if y_pred.shape[1] == 1:
-                    # if only one channel, repeat for LPIPS
+                    # if only one channel, repeat for discriminator
+                    print(y_pred.shape, y.shape)
+                    print("-" * 8) 
                     y_pred = y_pred.repeat(1, 3, 1, 1)
                     y = y.repeat(1, 3, 1, 1)
                 disc_loss, delta_score = self.discrimintor.discriminator_loss_fn(y_pred, y, self.real_target_generator, self.gen_target_generator)
