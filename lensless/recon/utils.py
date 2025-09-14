@@ -1425,7 +1425,7 @@ class Trainer:
 
         start_time = time.time()
 
-        self.evaluate(mean_loss=1, epoch=0, disp=disp)
+        #self.evaluate(mean_loss=1, epoch=0, disp=disp)
         for epoch in range(n_epoch):
 
             # add extra components (if specified)
