@@ -151,10 +151,10 @@ class BaselineDiscriminator(nn.Module):
             if target_generator == "Rand":
                 print("Random generator used")
                 # Случайные значения в диапазоне [0.0, 0.3]
-                targets = torch.full((batch_size,), 1, device=fake_logits.device)
+                targets = torch.full((batch_size,), 1.0, device=fake_logits.device)
             elif target_generator == "Determ":
                 # Детерминированные значения (например, 0.1)
-                targets = torch.full((batch_size,), 1, device=fake_logits.device)
+                targets = torch.full((batch_size,), 1.0, device=fake_logits.device)
             else:
                 raise ValueError(f"Unknown target_generator type: {target_generator}")
         else:
