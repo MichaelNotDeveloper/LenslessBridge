@@ -151,10 +151,10 @@ class BaselineDiscriminator(nn.Module):
             if target_generator == "Rand":
                 print("Random generator used")
                 # Случайные значения в диапазоне [0.0, 0.3]
-                targets = torch.rand(batch_size, device=fake_logits.device) * 0.3
+                targets = torch.full((batch_size,), 1, device=fake_logits.device)
             elif target_generator == "Determ":
                 # Детерминированные значения (например, 0.1)
-                targets = torch.full((batch_size,), 0.1, device=fake_logits.device)
+                targets = torch.full((batch_size,), 1, device=fake_logits.device)
             else:
                 raise ValueError(f"Unknown target_generator type: {target_generator}")
         else:
@@ -166,8 +166,7 @@ class BaselineDiscriminator(nn.Module):
                 targets = torch.tensor(targets, device=fake_logits.device)
         
         # Вычисляем MSE лосс
-        print(fake_logits.shape, targets.shape)
-        loss = torch.log(torch.sum(torch.sigmoid(fake_logits.squeeze())-targets, axis = 0))
+        loss = torch.nn.functional.binary_cross_entropy_with_logits(fake_logits.squeeze(), targets)
         return loss
 
     def discriminator_loss_fn(self, generated_images: torch.Tensor, real_images: torch.Tensor, 
@@ -236,15 +235,15 @@ class BaselineDiscriminator(nn.Module):
                 fake_targets = torch.tensor(fake_targets, device=fake_logits.device)
         
         # Вычисляем MSE лоссы
-        real_loss = torch.log(torch.sum(torch.sigmoid(real_logits.squeeze())-real_targets, axis = 0))
-        fake_loss = torch.log(torch.sum(torch.sigmoid(fake_logits.squeeze())-fake_targets, axis = 0))
+        real_loss = torch.nn.functional.binary_cross_entropy_with_logits(real_logits.sqeeze(), real_targets)
+        fake_loss = torch.nn.functional.binary_cross_entropy_with_logits(fake_logits.sqeeze(), fake_targets)
         
         # Общий лосс дискриминатора
         total_loss = 0.5 * (real_loss + fake_loss)
        
         # Лосс для прогрева дискриминатора
-        real_loss_abs = torch.nn.L1Loss()(real_logits.squeeze(), real_targets)
-        fake_loss_abs = torch.nn.L1Loss()(fake_logits.squeeze(), fake_targets)
+        real_loss_abs = torch.mean(torch.sigmoid(real_logits.squeeze()))
+        fake_loss_abs = torch.mean(torch.simgoid(fake_logits.squeeze()))
         delta_score = torch.abs(real_loss_abs - fake_loss_abs)
 
         return total_loss, delta_score
