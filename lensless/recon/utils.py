@@ -990,7 +990,6 @@ class Trainer:
         pbar = tqdm(data_loader)
         self.recon.train()
         if self.discrimintor is not None:
-            print("Using Discriminator")
             self.discrimintor.train()
         for batch in pbar:
             # get batch
@@ -1237,7 +1236,7 @@ class Trainer:
             pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
         self.print(f"loss : {mean_loss}")
 
-        return mean_loss
+        return mean_loss, disc_mean_loss, disc_score_diff,
 
     def evaluate(self, mean_loss, epoch, disp=None, mean_gan_loss=0, delta_score=0):
         """
@@ -1362,10 +1361,20 @@ class Trainer:
             wandb.log(current_metrics, step=epoch)
             if self.extra_eval_sets is not None:
                 wandb.log(extra_metrics_epoch, step=epoch)
+        # Add GAN metrics to wandb logging if available
+        if self.gan_amount_of_epoch:
+            gan_metrics = {}
+            if hasattr(self, "disc_mean_loss"):
+                gan_metrics["disc_mean_loss"] = mean_gan_loss
+            if hasattr(self, "disc_score_diff"):
+                gan_metrics["disc_score_diff"] = delta_score  
+            # Log GAN metrics to wandb if enabled
+            if self.use_wandb and len(gan_metrics) > 0:
+                wandb.log(gan_metrics, step=epoch)
 
         return eval_loss
 
-    def on_epoch_end(self, mean_loss, save_pt, epoch, disp=None, mean_gan_loss=None):
+    def on_epoch_end(self, mean_loss, save_pt, epoch, disp=None, mean_gan_loss=None, delta_score=None):
         """
         Called at the end of each epoch.
 
@@ -1389,7 +1398,7 @@ class Trainer:
             save_pt = os.getcwd()
 
         # save model
-        epoch_eval_metric = self.evaluate(mean_loss, epoch, disp=disp)
+        epoch_eval_metric = self.evaluate(mean_loss, epoch, disp=disp, mean_gan_loss=mean_gan_loss, delta_score=delta_score)
         new_best = False
         if (
             self.metrics["metric_for_best_model"] == "PSNR"
@@ -1469,9 +1478,9 @@ class Trainer:
 
             self.print(f"Epoch {epoch} with learning rate {self.scheduler.get_last_lr()}")
             # Where epoch runs TODO : reconstruct epoch iterations (train D more)
-            mean_loss = self.train_epoch(self.train_dataloader)
+            mean_loss, disc_loss, score = self.train_epoch(self.train_dataloader)
             # offset because of evaluate before loop
-            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp)
+            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp, mean_gan_loss=disc_loss, delta_score=score)
             if self.lr_step_epoch:
                 self.scheduler.step()
             
