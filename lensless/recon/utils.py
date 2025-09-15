@@ -1090,7 +1090,7 @@ class Trainer:
                 disc_mean_loss += (disc_loss.item() - disc_mean_loss) * (1 / disc_i)
                 disc_i += 1
             
-            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or (delta_score >= self.score_diff and disc_i > 10)):
+            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or (disc_score_diff >= self.score_diff and disc_i > 10)):
                 self.warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
                 self.optimizer.zero_grad()
