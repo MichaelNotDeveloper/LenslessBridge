@@ -77,6 +77,7 @@ class BaselineDiscriminator(nn.Module):
         negative_slope: float = 0.2,
     ):
         super().__init__()
+        img_size = [900, 1200]
         if isinstance(img_size, int):
             h, w = img_size, img_size
         else:

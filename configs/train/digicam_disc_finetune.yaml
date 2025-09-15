@@ -39,7 +39,7 @@ algorithms: [
   # "hf:digicam:mirflickr_single_25k:Unet4M+TrainInv+Unet4M_wave",
   "hf:digicam:mirflickr_single_25k:Unet4M+U5+Unet4M_wave",
   # "hf:digicam:mirflickr_single_25k:Unet2M+MMCN+Unet2M_wave",
-  # "hf:digicam:mirflickr_single_25k:Unet2M+MWDN6M_wave",
+  # "hf:digicam:mirflickr_single_25k:Unet2M+MWDN6M_wave",f
   # "hf:digicam:mirflickr_single_25k:Unet4M+U10+Unet4M_wave",
   # "hf:digicam:mirflickr_single_25k:Unet4M+U5+Unet4M_wave_psfNN",
   # "hf:digicam:mirflickr_single_25k:Unet4M+U5+Unet4M_wave_flips",
