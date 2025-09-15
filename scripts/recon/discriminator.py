@@ -150,7 +150,6 @@ class BaselineDiscriminator(nn.Module):
         batch_size = fake_logits.shape[0]
         if isinstance(target_generator, str):
             if target_generator == "Rand":
-                print("Random generator used")
                 # Случайные значения в диапазоне [0.0, 0.3]
                 targets = torch.full((batch_size,), 1.0, device=fake_logits.device)
             elif target_generator == "Determ":

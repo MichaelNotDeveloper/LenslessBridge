@@ -1089,7 +1089,6 @@ class Trainer:
                 self.optimizer.zero_grad()  
                 disc_score_diff += (delta_score.item() - disc_score_diff) * (1 / disc_i)
                 disc_mean_loss += (disc_loss.item() - disc_mean_loss) * (1 / disc_i)
-                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
                 disc_i += 1
             
             if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or (delta_score >= self.score_diff and disc_i > 10)):
@@ -1233,9 +1232,9 @@ class Trainer:
                         self.train_dataloader.dataset.set_psf()
 
                 mean_loss += (loss_v.item() - mean_loss) * (1 / i)
-                pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff {self.score_diff}")
                 i += 1
 
+            pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
         self.print(f"loss : {mean_loss}")
 
         return mean_loss
