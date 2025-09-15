@@ -1092,7 +1092,7 @@ class Trainer:
                 pbar.set_description(f"loss : {mean_loss}, disc_loss : {disc_mean_loss}, score_diff : {disc_score_diff}")
                 disc_i += 1
             
-            if True or np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or (delta_score >= self.score_diff and disc_i > 10)):
+            if np.random.randint(self.gan_amount_of_epoch) == 0 and (not self.warmup or (delta_score >= self.score_diff and disc_i > 10)):
                 self.warmup = False
                 loss_v = self.Loss(y_pred_crop, y)
                 self.optimizer.zero_grad()
@@ -1471,12 +1471,8 @@ class Trainer:
             self.print(f"Epoch {epoch} with learning rate {self.scheduler.get_last_lr()}")
             # Where epoch runs TODO : reconstruct epoch iterations (train D more)
             mean_loss = self.train_epoch(self.train_dataloader)
-            if self.discrimintor is not None:
-                print("magic starts here")
-                #mean_gan_loss = self.train_gan_epoch(self.train_dataloader, self.generated_dataloader)
-            
             # offset because of evaluate before loop
-            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp, mean_gan_loss=mean_gan_loss)
+            self.on_epoch_end(mean_loss, save_pt, epoch + 1, disp=disp)
             if self.lr_step_epoch:
                 self.scheduler.step()
             
@@ -1558,9 +1554,11 @@ class Trainer:
         # save optimizer
         if include_optimizer:
             torch.save(self.optimizer.state_dict(), os.path.join(path, f"optim_epoch{epoch}.pt"))
-            if self.gan is not None:
+            if self.discrimintor is not None:
                 torch.save(self.discriminator_optimizer.state_dict(), os.path.join(path, f"discriminator_optim_epoch{epoch}.pt"))
 
         # save recon
         torch.save(self.recon.state_dict(), os.path.join(path, f"recon_epoch{epoch}"))
-        torch.save(self.discriminator.state_dict(), os.path.join(path, f"discriminator_epoch{epoch}"))
+        if self.discrimintor is not None:
+            torch.save(self.discriminator.state_dict(), os.path.join(path, f"discriminator_epoch{epoch}"))
+        
