@@ -75,4 +75,4 @@ gan:
   epoch_diff : 5 # for one Gen epochs use "epoch_diff" epochs for Discriminator
   generator : "Rand" # Rand or Determ
   warmup : True
-  score_diff : 0.3
+  score_diff : 3
