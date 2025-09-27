@@ -11,7 +11,7 @@ huggingface:
   repo: "bezzam/DigiCam-Mirflickr-SingleMask-25K"
   cache_dir: null
   psf: null   # null for simulating PSF
-  image_res: [900, 1200]  # used during measurement
+  image_res: [3600, 4800]  # used during measurement
   rotate: True   # if measurement is upside-down
   flipud: False
   flip_lensed: False   # if rotate or flipud is True, apply to lensed
