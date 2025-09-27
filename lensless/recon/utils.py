@@ -823,8 +823,6 @@ class Trainer:
             "best_eval_score": 0,
             "discriminator_loss": [],
             "score_diff" : []
-            if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
-            else np.inf,
         }
         if self.unrolled_output_factor:
             # -- add unrolled metrics
@@ -1280,7 +1278,6 @@ class Trainer:
 
         # update metrics with current metrics
         self.metrics["LOSS"].append(mean_loss)
-        #self.metrics["discriminator_LOSS"]
         if self.use_wandb:
             wandb.log({"LOSS": mean_loss}, step=epoch)
         for key in current_metrics:
