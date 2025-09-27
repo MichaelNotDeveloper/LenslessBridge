@@ -241,7 +241,7 @@ class BaselineDiscriminator(nn.Module):
         # Общий лосс дискриминатора
         total_loss = 0.5 * (real_loss + fake_loss)
        
-        # Лосс для прогрева дискриминатора
+        # Кастомный лосс для прогрева дискриминатора (TODO посмотреть есть ли вообще такой гдето???)
         real_loss_abs = torch.mean(torch.sigmoid(real_logits.squeeze()))
         fake_loss_abs = torch.mean(torch.sigmoid(fake_logits.squeeze()))
         delta_score = torch.abs(real_loss_abs - fake_loss_abs)

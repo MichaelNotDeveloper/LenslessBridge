@@ -23,11 +23,11 @@ algorithms: [
   # "ADMM",
 
   # ## comparing LeADMM5 and SVDeconvNet, ADAMW optimizer
-  "hf:diffusercam:mirflickr:U5+Unet12M_fullres",
+  #"hf:diffusercam:mirflickr:U5+Unet12M_fullres",
   "hf:diffusercam:mirflickr:Unet6M+U5+Unet6M_fullres",
-  "hf:diffusercam:mirflickr:Unet6M+U5+Unet6M_psfNN_fullres",
-  "hf:diffusercam:mirflickr:SVDecon+UNet8M",
-  "hf:diffusercam:mirflickr:Unet4M+SVDecon+Unet4M",
+  #"hf:diffusercam:mirflickr:Unet6M+U5+Unet6M_psfNN_fullres",
+  #"hf:diffusercam:mirflickr:SVDecon+UNet8M",
+  #"hf:diffusercam:mirflickr:Unet4M+SVDecon+Unet4M",
 ]
 
 save_idx: [0, 1, 3, 4, 8]

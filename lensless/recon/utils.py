@@ -821,8 +821,8 @@ class Trainer:
             "metric_for_best_model": metric_for_best_model,
             "best_epoch": 0,
             "best_eval_score": 0,
-            "discriminator_LOSS": [],
-            "delta_score" : []
+            "discriminator_loss": [],
+            "score_diff" : []
             if metric_for_best_model == "PSNR" or metric_for_best_model == "SSIM"
             else np.inf,
         }
@@ -1364,10 +1364,12 @@ class Trainer:
         # Add GAN metrics to wandb logging if available
         if self.gan_amount_of_epoch:
             gan_metrics = {}
-            if hasattr(self, "disc_mean_loss"):
-                gan_metrics["disc_mean_loss"] = mean_gan_loss
-            if hasattr(self, "disc_score_diff"):
-                gan_metrics["disc_score_diff"] = delta_score  
+            if mean_gan_loss is not None:
+                gan_metrics["discriminator_loss"] = mean_gan_loss
+                self.metrics["discriminator_loss"].append(mean_gan_loss)
+            if delta_score is not None:
+                gan_metrics["score_diff"] = delta_score
+                self.metrics["score_diff"].append(delta_score)
             # Log GAN metrics to wandb if enabled
             if self.use_wandb and len(gan_metrics) > 0:
                 wandb.log(gan_metrics, step=epoch)
