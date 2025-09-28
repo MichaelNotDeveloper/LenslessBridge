@@ -21,7 +21,6 @@ huggingface:
 
 algorithms: [
   # "ADMM",
-
   ## -- reconstructions trained on measured data 
   "hf:digicam:mirflickr_multi_25k:Unet4M+U5+Unet4M_wave",
   #"hf:digicam:mirflickr_multi_25k:Unet4M+U5+Unet4M_wave_psfNN",
