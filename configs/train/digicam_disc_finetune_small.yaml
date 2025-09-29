@@ -36,7 +36,7 @@ algorithms: [
   # "hf:digicam:mirflickr_single_25k:MMCN4M+Unet4M_wave",
   # "hf:digicam:mirflickr_single_25k:MWDN8M_wave",
   # "hf:digicam:mirflickr_single_25k:Unet4M+TrainInv+Unet4M_wave",
-  "hf:digicam:mirflickr_single_25k:Unet4M+U5+Unet4M_wave",
+  #"hf:digicam:mirflickr_single_25k:Unet4M+U5+Unet4M_wave",
   # "hf:digicam:mirflickr_single_25k:Unet2M+MMCN+Unet2M_wave",
   # "hf:digicam:mirflickr_single_25k:Unet2M+MWDN6M_wave",f
   # "hf:digicam:mirflickr_single_25k:Unet4M+U10+Unet4M_wave",
@@ -53,7 +53,7 @@ algorithms: [
   # "hf:tapecam:mirflickr:Unet4M+U5+Unet4M",
   # "hf:diffusercam:mirflickr:Unet4M+U5+Unet4M",
   # "hf:digicam:mirflickr_multi_25k:Unet4M+U5+Unet4M_wave",
-  # "hf:digicam:mirflickr_multi_25k:Unet4M+U5+Unet4M_wave_psfNN",
+  "hf:digicam:mirflickr_multi_25k:Unet4M+U5+Unet4M_wave_psfNN",
   # "hf:tapecam:mirflickr:Unet4M+U5+Unet4M_psfNN",
   # "hf:diffusercam:mirflickr:Unet4M+U5+Unet4M_psfNN",
 ]
