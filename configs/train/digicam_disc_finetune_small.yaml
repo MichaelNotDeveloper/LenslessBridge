@@ -58,9 +58,9 @@ algorithms: [
   # "hf:diffusercam:mirflickr:Unet4M+U5+Unet4M_psfNN",
 ]
 
-# save_idx: [1, 2, 4, 5, 9, 24, 33, 61]
+save_idx: [1, 2, 4, 5, 9, 24, 33, 61]
 # n_iter_range: [100]    # for ADMM
-save_idx: [1, 2, 4, 5, 9]
+# save_idx: [1, 2, 4, 5, 9]
 n_iter_range: [10]    # for ADMM
 
 # simulating PSF
